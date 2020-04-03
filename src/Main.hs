@@ -11,8 +11,8 @@ import JsonParser
 
 manageRequest :: String -> HttpRequest
 manageRequest xs = case httpRequest $ xs of
-                     Just x -> x
-                     Nothing -> Req {method = Get, path = "Errado"}
+                     Right x -> x
+                     Left x -> Req { method = Get, path = "Eror in :" <> x }
 
 unsoc :: [a] -> Maybe [a]
 unsoc [] = Nothing

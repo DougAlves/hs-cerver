@@ -6,6 +6,7 @@ import Data.Monoid
 
 instance (Monoid a, Eq a) => Alternative (Either a) where
   empty = Left mempty
+
   Left x <|> Right y = Right y
   Right x <|> _ = Right x
   Left x <|> Left y = if x == mempty then Left y else Left x
@@ -34,22 +35,31 @@ instance Alternative Parser where
                    Right x -> Right x
                    Left y2 -> if y == empty then Left y2 else Left y
       
-    
+
+sepBy :: Parser a -> Parser b -> Parser [b]
+sepBy sep element = (:)  <$> element <*> many (sep *> element) <|> pure []
 
 charP :: Char -> Parser Char
 charP x = Parser f
   where f (y:ys)
           | y == x = Right (ys, x)
-          | otherwise = Left $ "Characters `" ++ [y] ++ "` and `" ++ [x] ++ "` dont match"
-        f [] = Left "No input provided"
+          | otherwise = Left $ "could not math expected char " <> [x] <> " with given char " <> [y]
+        f [] = Left ""
 
 stringP :: String -> Parser String
-stringP = sequenceA . fmap charP
+stringP = sequenceA . fmap charP 
 
+notNull :: Parser [a] -> Parser [a]
+notNull (Parser p) =
+  Parser $ \input -> do
+  (inp, rest) <- p input
+  if null rest
+    then Left $ "Cound not parse " <> input
+    else Right (inp, rest) 
+  
 spanP :: (Char -> Bool) -> Parser String
 spanP p = Parser $ \input ->
   let (token,rest) = span p input
-  in Right (rest, token)
+  in Right (rest, token) 
 
 ws = spanP isSpace
-
