@@ -30,14 +30,15 @@ mainLoop sock = do
     close conn
     mainLoop sock
 
-getPort :: [String] -> String
-getPort [] = "5050"
-getPort (p:_) = p
+getFile :: [String] -> String
+getFile [] = "magic.json"
+getFile (y:_) = y
 
 main :: IO ()
 main = do
-  port <- getPort <$> getArgs
-  addr:_ <- getAddrInfo Nothing (Just "127.0.0.1") (Just port)
+  configfigF <- getFile <$> getArgs
+  config <- parserFile configfigF
+  addr:_ <- getAddrInfo Nothing (Just "127.0.0.1") (Just "6969")
   sock <- socket AF_INET Stream 0
   bind sock (addrAddress addr)
   listen sock 4
@@ -45,16 +46,16 @@ main = do
 
 response :: (Monoid m, Data.String.IsString m) => HttpRequest -> m
 response req
-  | (path req == "/") ||  path req == "/favicon.ico" = "HTTP/1.1 200 ok\n" <>
-                                                       "content-type: HTML\n\n" <>
-                                                       "<html>" <>
-                                                       "<head>" <>
-                                                       "<title> Pure Functional Cerver </title>" <>
-                                                       "</head>" <>
-                                                       "<body>" <>
-                                                       "<h1> Haskell Cerver </h1>" <>
-                                                       "</body>" <>
-                                                       "</html>\n"
+  | (path req == "/") = "HTTP/1.1 200 ok\n" <>
+                        "content-type: HTML\n\n" <>
+                        "<html>" <>
+                        "<head>" <>
+                        "<title> Pure Functional Cerver </title>" <>
+                        "</head>" <>
+                        "<body>" <>
+                        "<h1> Haskell Cerver </h1>" <>
+                        "</body>" <>
+                        "</html>\n"
   | otherwise =  "HTTP/1.1 200 ok\n" <>
                  "content-type: HTML\n\n" <>
                  "<html>" <>
